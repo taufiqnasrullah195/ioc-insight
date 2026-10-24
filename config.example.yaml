@@ -1,0 +1,31 @@
+providers:
+  virustotal:
+    api_key: "ENV:VT_API_KEY"
+    enabled: true
+  abuseipdb:
+    api_key: "ENV:ABUSEIPDB_API_KEY"
+    enabled: true
+  otx:
+    api_key: "ENV:OTX_API_KEY"
+    enabled: true
+  whois_age:
+    enabled: true          # no key needed
+
+ai:
+  base_url: "https://api.vleee.net/v1"
+  api_key: "ENV:HERMES_CUSTOM_API_VLEEE_NET_API_KEY"
+  model: "ali/kimi-k3"
+  temperature: 0.2
+  max_tokens: 4096          # reasoning model (kimi-k3) needs headroom
+  timeout_seconds: 60
+
+cache:
+  path: "data/cache.db"
+  ttl_hours: {ip: 24, domain: 24, url: 12, hash: 168}
+
+history:
+  path: "data/history.db"
+
+defaults:
+  lang: "en"               # en | de | id
+  timeout_seconds: 15      # per analyzer HTTP call

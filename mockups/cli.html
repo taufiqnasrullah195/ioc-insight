@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IOC Insight — CLI Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #0b0f14; }
+  .term { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+</style>
+</head>
+<body class="text-slate-200 min-h-screen p-8">
+<div class="max-w-3xl mx-auto space-y-6">
+
+  <div class="text-center">
+    <h1 class="text-lg font-bold text-slate-300">IOC Insight — CLI Mockup</h1>
+    <p class="text-xs text-slate-500">what `iocinsight` looks like in your terminal</p>
+  </div>
+
+  <!-- Terminal window -->
+  <div class="rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
+    <!-- title bar -->
+    <div class="bg-[#1c2128] px-4 py-2.5 flex items-center gap-2">
+      <span class="w-3 h-3 rounded-full bg-red-500"></span>
+      <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+      <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+      <span class="ml-3 text-xs text-slate-400 term">lasvegas@srv — bash</span>
+    </div>
+    <!-- terminal body -->
+    <div class="bg-[#0d1117] p-5 term text-[13px] leading-relaxed">
+
+      <div><span class="text-emerald-400">❯</span> <span class="text-slate-200">iocinsight 185.220.101.47 --lang id</span></div>
+      <div class="mt-2 text-slate-500">◉ IOC Insight v0.1 · type: <span class="text-cyan-400">ipv4</span> · enriching 4 analyzers…</div>
+      <div class="text-slate-500">⠿ done in 1.8s <span class="text-slate-600">(VT · AbuseIPDB · OTX live, WHOIS skipped)</span></div>
+
+      <!-- verdict box -->
+      <div class="mt-4 border border-red-500/60 rounded-lg p-4 bg-[#160d0d]">
+        <div class="flex justify-between items-baseline">
+          <span><span class="text-red-400 font-bold text-base">■ MALICIOUS</span> <span class="text-slate-500">confidence 92%</span></span>
+          <span class="text-red-400 font-bold">87/100</span>
+        </div>
+        <div class="mt-1 text-slate-500">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<span class="text-slate-700">━━━━━</span></div>
+        <div class="mt-2 text-slate-300">⛔ Rekomendasi: <span class="text-red-300 font-semibold">BLOKIR di firewall</span> + cek log koneksi historis</div>
+        <div class="mt-2 text-slate-400">IP ini dilaporkan 142× dalam 30 hari terakhir untuk brute-force SSH dan
+  aktivitas relay C2. Tiga sumber independen sepakat — anggap berbahaya.</div>
+        <div class="mt-2 text-slate-500">tags: <span class="text-cyan-400">brute-force</span> <span class="text-cyan-400">tor-exit</span> <span class="text-cyan-400">c2</span></div>
+      </div>
+
+      <!-- sources table -->
+      <div class="mt-4">
+        <span class="text-slate-400 font-semibold">Sumber Threat Intel</span>
+        <pre class="text-slate-400 mt-1">┌────────────┬───────────────────┬──────────┬─────────┐
+│ Source     │ Result            │ Status   │ Fresh   │
+├────────────┼───────────────────┼──────────┼─────────┤
+│ VirusTotal │ <span class="text-red-400">12/89</span> engines      │ <span class="text-emerald-400">ok</span>       │ live    │
+│ AbuseIPDB  │ <span class="text-red-400">98%</span> · 142 reports │ <span class="text-emerald-400">ok</span>       │ live    │
+│ OTX        │ <span class="text-amber-400">7 pulses</span>          │ <span class="text-emerald-400">ok</span>       │ live    │
+│ WHOIS Age  │ — (domain only)   │ <span class="text-slate-600">skipped</span>  │ —       │
+└────────────┴───────────────────┴──────────┴─────────┘</pre>
+      </div>
+
+      <!-- ticket report -->
+      <div class="mt-4 border border-slate-700 rounded-lg p-4 bg-[#11161c]">
+        <div class="flex justify-between">
+          <span class="text-slate-400 font-semibold">📋 Ticket Report</span>
+          <span class="text-cyan-400">--copy → copied to clipboard ✓</span>
+        </div>
+        <pre class="mt-2 text-slate-500">## IOC Triage — 185.220.101.47
+**Verdict:** MALICIOUS (92%) · **Score:** 87/100
+**Action:** BLOCK at firewall
+VT 12/89 · AbuseIPDB 98% (142 reports) · OTX 7 pulses
+MITRE: T1110, T1071.001
+<i>ai: ali/kimi-k3 · id · 2026-10-24 11:12 UTC</i></pre>
+      </div>
+
+      <div class="mt-3 text-slate-600">history saved → data/history.db #1337</div>
+      <div class="mt-2"><span class="text-emerald-400">❯</span> <span class="animate-pulse">▊</span></div>
+    </div>
+  </div>
+
+  <!-- flags reference -->
+  <div class="rounded-xl border border-slate-800 bg-[#11181f] p-4">
+    <div class="text-sm font-semibold text-slate-300 mb-2">Command reference</div>
+    <div class="term text-xs text-slate-400 space-y-1">
+      <div><span class="text-cyan-400">iocinsight &lt;ioc&gt;</span> <span class="text-slate-600"># single lookup, auto-detect type</span></div>
+      <div><span class="text-cyan-400">--lang en|de|id</span> <span class="text-slate-600"># report language (default: en)</span></div>
+      <div><span class="text-cyan-400">--file iocs.txt</span> <span class="text-slate-600"># bulk lookup, one IOC per line</span></div>
+      <div><span class="text-cyan-400">--json</span> <span class="text-slate-600"># machine-readable output (pipe-friendly)</span></div>
+      <div><span class="text-cyan-400">--no-ai</span> <span class="text-slate-600"># skip AI layer, deterministic score only</span></div>
+      <div><span class="text-cyan-400">--no-cache</span> <span class="text-slate-600"># force fresh lookups</span></div>
+      <div><span class="text-cyan-400">--copy</span> <span class="text-slate-600"># copy ticket report to clipboard</span></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

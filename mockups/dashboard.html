@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IOC Insight — Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #0b0f14; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+</style>
+</head>
+<body class="text-slate-200">
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-56 bg-[#0e141b] border-r border-slate-800 p-4 flex flex-col">
+    <div class="flex items-center gap-2 mb-8">
+      <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold">◉</div>
+      <div>
+        <div class="font-bold text-sm">IOC Insight</div>
+        <div class="text-[10px] text-slate-500">SOC L1 Triage</div>
+      </div>
+    </div>
+    <nav class="space-y-1 text-sm">
+      <a class="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/10 text-cyan-400">⌕ Lookup</a>
+      <a class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800/50 text-slate-400">🗂 History</a>
+      <a class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800/50 text-slate-400">⇪ Bulk Lookup</a>
+      <a class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800/50 text-slate-400">⚙ Settings</a>
+    </nav>
+    <div class="mt-auto text-[10px] text-slate-600 space-y-1">
+      <div class="flex justify-between"><span>VT</span><span class="text-emerald-400">● online</span></div>
+      <div class="flex justify-between"><span>AbuseIPDB</span><span class="text-emerald-400">● online</span></div>
+      <div class="flex justify-between"><span>OTX</span><span class="text-emerald-400">● online</span></div>
+      <div class="flex justify-between"><span>AI (kimi-k3)</span><span class="text-emerald-400">● online</span></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 p-6 space-y-6">
+
+    <!-- Search bar -->
+    <div class="bg-[#11181f] border border-slate-800 rounded-xl p-4">
+      <div class="flex gap-3">
+        <input value="185.220.101.47" class="mono flex-1 bg-[#0b0f14] border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500" placeholder="Paste IOC — IP, domain, URL, hash (hxxp://, [.] defanged OK)">
+        <select class="bg-[#0b0f14] border border-slate-700 rounded-lg px-3 text-sm"><option>🇬🇧 EN</option><option>🇩🇪 DE</option><option>🇮🇩 ID</option></select>
+        <button class="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold px-6 rounded-lg text-sm">Analyze</button>
+      </div>
+      <div class="text-[11px] text-slate-500 mt-2">Auto-detected type: <span class="text-cyan-400 mono">ipv4</span> · cached results used when fresh</div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-6">
+
+      <!-- Left: verdict + sources -->
+      <div class="col-span-2 space-y-6">
+
+        <!-- Verdict card -->
+        <div class="bg-[#11181f] border border-red-900/60 rounded-xl p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-3">
+                <span class="text-2xl font-bold text-red-400">MALICIOUS</span>
+                <span class="text-xs bg-red-500/15 text-red-300 px-2 py-1 rounded-full">confidence 92%</span>
+              </div>
+              <div class="mt-2 text-xs text-slate-400">Composite risk score</div>
+              <div class="flex items-center gap-3 mt-1">
+                <div class="w-56 h-2 bg-slate-800 rounded-full overflow-hidden"><div class="h-full w-[87%] bg-gradient-to-r from-amber-400 to-red-500"></div></div>
+                <span class="mono text-lg text-red-400 font-bold">87<span class="text-slate-500 text-xs">/100</span></span>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-[11px] text-slate-500">Recommended action</div>
+              <div class="mt-1 inline-block bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-semibold px-3 py-1.5 rounded-lg">⛔ BLOCK at firewall</div>
+            </div>
+          </div>
+          <p class="mt-4 text-sm text-slate-300 leading-relaxed">
+            This IP was reported <b class="text-slate-100">142 times in the last 30 days</b> for brute-force SSH and Tor exit relay activity. VirusTotal flags it on <b class="text-slate-100">12/89 engines</b> and it appears in <b class="text-slate-100">7 OTX pulses</b> linked to botnet C2 infrastructure. Multiple independent sources agree — treat as hostile.
+          </p>
+          <div class="mt-3 flex gap-2 text-[11px]">
+            <span class="bg-slate-800 px-2 py-1 rounded mono">brute-force</span>
+            <span class="bg-slate-800 px-2 py-1 rounded mono">tor-exit</span>
+            <span class="bg-slate-800 px-2 py-1 rounded mono">c2</span>
+          </div>
+        </div>
+
+        <!-- Source cards -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-[#11181f] border border-slate-800 rounded-xl p-4">
+            <div class="flex justify-between items-center mb-2"><span class="font-semibold text-sm">VirusTotal</span><span class="text-[10px] text-slate-500">cached · 2h ago</span></div>
+            <div class="mono text-2xl text-red-400 font-bold">12<span class="text-slate-500 text-sm">/89</span></div>
+            <div class="text-[11px] text-slate-400 mt-1">engines flagged malicious</div>
+          </div>
+          <div class="bg-[#11181f] border border-slate-800 rounded-xl p-4">
+            <div class="flex justify-between items-center mb-2"><span class="font-semibold text-sm">AbuseIPDB</span><span class="text-[10px] text-emerald-400">live</span></div>
+            <div class="mono text-2xl text-red-400 font-bold">98%</div>
+            <div class="text-[11px] text-slate-400 mt-1">abuse confidence · 142 reports</div>
+          </div>
+          <div class="bg-[#11181f] border border-slate-800 rounded-xl p-4">
+            <div class="flex justify-between items-center mb-2"><span class="font-semibold text-sm">AlienVault OTX</span><span class="text-[10px] text-emerald-400">live</span></div>
+            <div class="mono text-2xl text-amber-400 font-bold">7</div>
+            <div class="text-[11px] text-slate-400 mt-1">pulses · botnet C2, SSH bruteforce</div>
+          </div>
+          <div class="bg-[#11181f] border border-slate-800 rounded-xl p-4 opacity-50">
+            <div class="flex justify-between items-center mb-2"><span class="font-semibold text-sm">WHOIS Age</span><span class="text-[10px] text-slate-500">n/a</span></div>
+            <div class="mono text-2xl text-slate-500 font-bold">—</div>
+            <div class="text-[11px] text-slate-500 mt-1">domain-only analyzer (skipped)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: ticket report -->
+      <div class="bg-[#11181f] border border-slate-800 rounded-xl p-4 flex flex-col">
+        <div class="flex justify-between items-center mb-3">
+          <span class="font-semibold text-sm">📋 Ticket Report</span>
+          <button class="text-xs bg-cyan-500/15 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-500/30">Copy markdown</button>
+        </div>
+        <pre class="mono text-[11px] text-slate-400 bg-[#0b0f14] border border-slate-800 rounded-lg p-3 flex-1 overflow-hidden whitespace-pre-wrap">## IOC Triage — 185.220.101.47
+**Verdict:** MALICIOUS (92%)
+**Risk score:** 87/100
+**Action:** BLOCK at firewall
+
+### Sources
+- VirusTotal: 12/89 engines
+- AbuseIPDB: 98% (142 reports, 30d)
+- OTX: 7 pulses (botnet C2)
+
+### Summary
+Reported for SSH brute-force and
+C2 relay activity. Multiple feeds
+agree. Recommend block + check
+firewall logs for past connections.
+
+### MITRE
+- T1110 Brute Force
+- T1071.001 Web C2
+
+*AI: ali/kimi-k3 · 2026-10-24*</pre>
+        <div class="mt-3 text-[10px] text-slate-600">Lookup took 1.8s · 3/4 analyzers live · 1 cached</div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
