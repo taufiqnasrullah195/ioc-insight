@@ -43,3 +43,16 @@ export async function askAI(question, lang) {
   }
   return r.json();
 }
+
+export async function lookupBulk(iocs, lang, ai = true) {
+  const r = await fetch(`${BASE}/lookup/bulk`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ iocs, lang, ai }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${r.status}`);
+  }
+  return r.json();
+}

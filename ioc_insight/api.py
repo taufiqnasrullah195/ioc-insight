@@ -83,6 +83,35 @@ class AskRequest(BaseModel):
     limit: int = 50
 
 
+class BulkRequest(BaseModel):
+    iocs: list[str]
+    lang: str | None = None
+    ai: bool = True
+
+
+@app.post("/api/v1/lookup/bulk")
+async def lookup_bulk(req: BulkRequest):
+    """Bulk lookup — up to 50 IOCs per call, processed sequentially
+    (rate-limit friendly). Each result is independent; invalid IOCs
+    are reported in-line instead of failing the batch."""
+    if not req.iocs:
+        raise HTTPException(422, "iocs list must not be empty")
+    if len(req.iocs) > 50:
+        raise HTTPException(422, "max 50 IOCs per bulk request")
+    lang = req.lang or app.state.config.defaults.lang
+    out = []
+    for raw in req.iocs:
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            r = await app.state.pipeline.lookup(raw, use_ai=req.ai, lang=lang)
+            out.append({"ok": True, "result": r.model_dump(mode="json")})
+        except InvalidIOCError as e:
+            out.append({"ok": False, "ioc": raw, "error": str(e)})
+    return {"results": out, "total": len(out), "succeeded": sum(1 for x in out if x["ok"])}
+
+
 @app.post("/api/v1/ask")
 async def ask(req: AskRequest):
     """Free-form AI Q&A over lookup history."""

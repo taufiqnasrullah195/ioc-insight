@@ -1,6 +1,7 @@
 import { useState } from "react";
 import LookupPage from "./pages/LookupPage.jsx";
 import HistoryPage from "./pages/HistoryPage.jsx";
+import BulkPage from "./pages/BulkPage.jsx";
 import StatusBar from "./components/StatusBar.jsx";
 
 export default function App() {
@@ -18,7 +19,7 @@ export default function App() {
           </div>
         </div>
         <nav className="space-y-1 text-sm">
-          {[["lookup", "⌕ Lookup"], ["history", "🗂 History"]].map(([key, label]) => (
+          {[["lookup", "⌕ Lookup"], ["bulk", "⇪ Bulk"], ["history", "🗂 History"]].map(([key, label]) => (
             <button key={key}
                     onClick={() => setPage(key)}
                     className={`w-full text-left px-3 py-2 rounded-lg ${page === key ? "bg-accent/10 text-accent" : "text-slate-400 hover:bg-slate-800/50"}`}>
@@ -34,7 +35,7 @@ export default function App() {
 
       {/* Main */}
       <main className="flex-1 p-6 max-w-6xl">
-        {page === "lookup" ? <LookupPage /> : <HistoryPage />}
+        {page === "lookup" ? <LookupPage /> : page === "bulk" ? <BulkPage /> : <HistoryPage />}
       </main>
     </div>
   );
