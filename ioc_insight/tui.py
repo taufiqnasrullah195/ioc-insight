@@ -31,6 +31,7 @@ _MENU = [
     ("Ask AI — question over lookup history", "ask"),
     ("Analyzer Status — quotas & health", "status"),
     ("Settings — language, cache", "settings"),
+    ("Open Web Dashboard — http://localhost:8000", "web"),
     ("Quit", "quit"),
 ]
 
@@ -144,6 +145,15 @@ class IOCInsightApp(App):
             self._show_status()
         elif key == "settings":
             self._show_settings()
+        elif key == "web":
+            self._open_web()
+
+    def _open_web(self) -> None:
+        """Open the web dashboard in the default browser."""
+        import webbrowser
+        webbrowser.open("http://localhost:8000")
+        self.query_one("#status").update(
+            "web dashboard → http://localhost:8000 (opened in browser)")
 
     # ---------- quick lookup ----------
 
