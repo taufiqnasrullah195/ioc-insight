@@ -61,6 +61,7 @@ class LookupResult(BaseModel):
     analyzer_results: list[AnalyzerResult]
     ai: AIAssessment | None = None
     duration_ms: int = 0
+    mitre: list[dict] = Field(default_factory=list)  # [{id, name, sources}]
 
 
 def score_band(score: int) -> Verdict:

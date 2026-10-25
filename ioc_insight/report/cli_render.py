@@ -68,6 +68,9 @@ def render_result(console: Console, result) -> None:
     if ai and ai.report_markdown:
         console.print(Panel(Markdown(ai.report_markdown), title="📋 Ticket Report",
                             border_style="dim", padding=(0, 1)))
+    if result.mitre:
+        console.print("[bold]MITRE ATT&CK:[/] " + "  ".join(
+            f"[cyan]{t['id']}[/] {t['name']}" for t in result.mitre))
     console.print(
         f"[dim]lookup took {result.duration_ms}ms"
         + (f" · ai: {ai.model} · {ai.lang}" if ai else " · ai: off")

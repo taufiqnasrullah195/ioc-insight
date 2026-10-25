@@ -49,6 +49,19 @@ export default function VerdictCard({ result }) {
           <span key={t} className="bg-slate-800 px-2 py-1 rounded font-mono text-slate-300">{t}</span>
         ))}
       </div>
+      {result.mitre?.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-border">
+          <div className="text-[10px] text-slate-500 mb-1.5">MITRE ATT&CK</div>
+          <div className="flex gap-2 flex-wrap">
+            {result.mitre.map((t) => (
+              <span key={t.id} title={t.sources.join(", ")}
+                    className="text-[11px] bg-purple-500/10 text-purple-300 border border-purple-500/30 px-2 py-1 rounded font-mono">
+                {t.id} {t.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

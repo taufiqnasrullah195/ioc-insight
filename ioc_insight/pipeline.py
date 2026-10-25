@@ -22,6 +22,7 @@ from .ai.fallback import fallback_assessment
 from .cache import Cache
 from .config import AppConfig
 from .db import HistoryDB
+from .mitre import map_techniques
 from .models import AnalyzerResult, LookupResult
 from .normalizer import normalize
 from .ratelimit import RateLimiter
@@ -92,6 +93,7 @@ class Pipeline:
             analyzer_results=results,
             ai=ai,
             duration_ms=duration_ms,
+            mitre=map_techniques(results),
         )
         self.history.save(result)
         return result
