@@ -187,10 +187,13 @@ class IOCInsightApp(App):
         verdict = ai.verdict if ai else None
         vwidget = self.query_one("#verdict")
         vwidget.display = True
+        # score always shown prominently, regardless of verdict
+        score_line = f"[bold]SCORE {r.risk_score}/100[/bold]"
         text = (
-            f"■ {verdict.value}  confidence {ai.confidence}%   score {r.risk_score}/100\n"
+            f"■ {verdict.value}  confidence {ai.confidence}%\n"
+            f"{score_line}\n"
             f"Action: {ai.recommended_action.value}\n\n{ai.explanation}"
-        ) if ai else f"score {r.risk_score}/100 (no AI)"
+        ) if ai else f"{score_line}  (no AI)"
         vwidget.update(text)
         vwidget.set_class(verdict == Verdict.MALICIOUS, "malicious")
         vwidget.set_class(verdict == Verdict.SUSPICIOUS, "suspicious")
