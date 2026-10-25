@@ -72,12 +72,14 @@ class AIClient:
         raise AIUnavailableError(f"AI assessment failed: {last_err}")
 
     async def _complete(self, messages: list[dict]) -> str:
-        resp = await self._client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens,
-        )
+        kwargs: dict = {
+            "model": self.config.model,
+            "messages": messages,
+            "max_tokens": self.config.max_tokens,
+        }
+        if self.config.temperature is not None:
+            kwargs["temperature"] = self.config.temperature
+        resp = await self._client.chat.completions.create(**kwargs)
         return resp.choices[0].message.content or ""
 
     async def health(self) -> bool:

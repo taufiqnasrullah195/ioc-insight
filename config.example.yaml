@@ -15,9 +15,9 @@ ai:
   base_url: "https://api.vleee.net/v1"
   api_key: "ENV:HERMES_CUSTOM_API_VLEEE_NET_API_KEY"
   model: "ali/kimi-k3"
-  temperature: 0.2
+  temperature: null           # kimi-k3 rejects temperature param — leave null
   max_tokens: 4096          # reasoning model (kimi-k3) needs headroom
-  timeout_seconds: 60
+  timeout_seconds: 180      # reasoning model thinks before answering
 
 cache:
   path: "data/cache.db"

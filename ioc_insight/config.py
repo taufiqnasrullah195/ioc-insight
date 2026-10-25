@@ -28,7 +28,7 @@ class AIConfig(BaseModel):
     base_url: str = "https://api.vleee.net/v1"
     api_key: str = "ENV:HERMES_CUSTOM_API_VLEEE_NET_API_KEY"
     model: str = "ali/kimi-k3"
-    temperature: float = 0.2
+    temperature: float | None = None  # kimi-k3 rejects this param — omit unless set
     max_tokens: int = 4096  # reasoning model: headroom for thinking tokens
     timeout_seconds: int = 180  # reasoning model (kimi-k3) thinks before answering
 
