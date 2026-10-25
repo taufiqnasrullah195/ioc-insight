@@ -30,6 +30,7 @@ from .db import HistoryDB
 from .mitre import map_techniques
 from .models import AnalyzerResult, LookupResult
 from .normalizer import normalize
+from .notify import TelegramNotifier
 from .ratelimit import RateLimiter
 from .scoring import score
 
@@ -104,7 +105,24 @@ class Pipeline:
             mitre=map_techniques(results),
         )
         self.history.save(result)
+        await self._maybe_notify(result)
         return result
+
+    async def _maybe_notify(self, result: LookupResult) -> None:
+        """Fire-and-forget Telegram alert — never blocks or breaks a lookup."""
+        n = self.config.notify
+        if not n.is_ready():
+            return
+        try:
+            from .models import Verdict
+            notifier = TelegramNotifier(
+                bot_token=n.resolved_token(),
+                chat_id=n.resolved_chat_id(),
+                min_severity=Verdict(n.min_severity),
+            )
+            await notifier.notify(result)
+        except Exception:
+            pass  # notification failures are silent by design
 
     async def close(self) -> None:
         await self.client.aclose()

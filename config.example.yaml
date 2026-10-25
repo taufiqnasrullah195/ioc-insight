@@ -29,3 +29,10 @@ history:
 defaults:
   lang: "en"               # en | de | id
   timeout_seconds: 15      # per analyzer HTTP call
+
+# Notifikasi Telegram — isi .env lalu set enabled: true
+notify:
+  enabled: false
+  bot_token: "ENV:TELEGRAM_BOT_TOKEN"
+  chat_id: "ENV:TELEGRAM_CHAT_ID"
+  min_severity: "MALICIOUS"  # MALICIOUS | SUSPICIOUS | UNKNOWN | CLEAN

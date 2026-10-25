@@ -54,6 +54,27 @@ class DefaultsConfig(BaseModel):
     timeout_seconds: int = 15
 
 
+class NotifyConfig(BaseModel):
+    """Telegram alerts — bot token + target chat/channel."""
+    enabled: bool = False
+    bot_token: str = "ENV:TELEGRAM_BOT_TOKEN"
+    chat_id: str = "ENV:TELEGRAM_CHAT_ID"
+    min_severity: str = "MALICIOUS"  # MALICIOUS | SUSPICIOUS | UNKNOWN | CLEAN
+
+    def resolved_token(self) -> str:
+        if self.bot_token.startswith("ENV:"):
+            return os.environ.get(self.bot_token[4:], "")
+        return self.bot_token
+
+    def resolved_chat_id(self) -> str:
+        if self.chat_id.startswith("ENV:"):
+            return os.environ.get(self.chat_id[4:], "")
+        return self.chat_id
+
+    def is_ready(self) -> bool:
+        return self.enabled and bool(self.resolved_token()) and bool(self.resolved_chat_id())
+
+
 class AppConfig(BaseModel):
     providers: dict[str, ProviderConfig] = Field(
         default_factory=lambda: {
@@ -73,6 +94,7 @@ class AppConfig(BaseModel):
     cache: CacheConfig = Field(default_factory=CacheConfig)
     history: HistoryConfig = Field(default_factory=HistoryConfig)
     defaults: DefaultsConfig = Field(default_factory=DefaultsConfig)
+    notify: NotifyConfig = Field(default_factory=NotifyConfig)
 
 
 def load_config(path: Path | None = None) -> AppConfig:
