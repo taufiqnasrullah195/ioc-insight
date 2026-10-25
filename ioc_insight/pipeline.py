@@ -26,6 +26,7 @@ from .ai.client import AIClient, AIUnavailableError
 from .ai.fallback import fallback_assessment
 from .cache import Cache
 from .config import AppConfig
+from .actions import ActionRunner
 from .db import HistoryDB
 from .mitre import map_techniques
 from .models import AnalyzerResult, LookupResult
@@ -117,7 +118,18 @@ class Pipeline:
         )
         self.history.save(result)
         await self._maybe_notify(result)
+        await self._run_actions(result)
         return result
+
+    async def _run_actions(self, result: LookupResult) -> None:
+        """Outbound automated actions (webhook to firewall/SOAR) on BLOCK."""
+        a = self.config.actions
+        if not a.is_ready():
+            return
+        try:
+            await ActionRunner(a.resolved_webhook()).run(result)
+        except Exception:
+            pass  # actions are fire-and-forget
 
     async def _maybe_notify(self, result: LookupResult) -> None:
         """Fire-and-forget Telegram alert — never blocks or breaks a lookup."""

@@ -36,3 +36,8 @@ notify:
   bot_token: "ENV:TELEGRAM_BOT_TOKEN"
   chat_id: "ENV:TELEGRAM_CHAT_ID"
   min_severity: "MALICIOUS"  # MALICIOUS | SUSPICIOUS | UNKNOWN | CLEAN
+
+# Automated actions — webhook dipanggil saat action = BLOCK
+actions:
+  enabled: false
+  webhook_url: "ENV:ACTION_WEBHOOK_URL"

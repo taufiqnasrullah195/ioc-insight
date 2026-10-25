@@ -77,6 +77,16 @@ async def history_item(lookup_id: int):
     return result
 
 
+@app.get("/api/v1/blocklist.txt")
+async def blocklist():
+    """Plain-text blocklist of every IOC that ever resolved to MALICIOUS.
+    Point your firewall / proxy at this endpoint to auto-block."""
+    from fastapi.responses import PlainTextResponse
+    items = app.state.pipeline.history.list(limit=1000)["items"]
+    lines = [i["ioc_value"] for i in items if i["verdict"] == "MALICIOUS"]
+    return PlainTextResponse("\n".join(sorted(set(lines))) + "\n")
+
+
 class AskRequest(BaseModel):
     question: str
     lang: str | None = None

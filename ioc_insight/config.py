@@ -75,6 +75,20 @@ class NotifyConfig(BaseModel):
         return self.enabled and bool(self.resolved_token()) and bool(self.resolved_chat_id())
 
 
+class ActionsConfig(BaseModel):
+    """Automated outbound actions on BLOCK verdicts."""
+    enabled: bool = False
+    webhook_url: str = "ENV:ACTION_WEBHOOK_URL"  # firewall / SOAR / any HTTP endpoint
+
+    def resolved_webhook(self) -> str:
+        if self.webhook_url.startswith("ENV:"):
+            return os.environ.get(self.webhook_url[4:], "")
+        return self.webhook_url
+
+    def is_ready(self) -> bool:
+        return self.enabled and bool(self.resolved_webhook())
+
+
 class AppConfig(BaseModel):
     providers: dict[str, ProviderConfig] = Field(
         default_factory=lambda: {
@@ -95,6 +109,7 @@ class AppConfig(BaseModel):
     history: HistoryConfig = Field(default_factory=HistoryConfig)
     defaults: DefaultsConfig = Field(default_factory=DefaultsConfig)
     notify: NotifyConfig = Field(default_factory=NotifyConfig)
+    actions: ActionsConfig = Field(default_factory=ActionsConfig)
 
 
 def load_config(path: Path | None = None) -> AppConfig:
