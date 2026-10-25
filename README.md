@@ -53,6 +53,14 @@ uvicorn ioc_insight.api:app --port 8000   # web UI + API, single port
 access, expose it with a Cloudflare quick tunnel:
 `cloudflared tunnel --url http://localhost:8000`.
 
+## Docker
+
+```bash
+cp .env.example .env   # fill your API keys
+docker compose up --build
+# → web UI + API on http://localhost:8000, data persisted in the ioc-data volume
+```
+
 WHOIS age works with **no API key at all** — you can try the tool immediately:
 
 ```bash

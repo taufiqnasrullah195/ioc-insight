@@ -1,0 +1,14 @@
+services:
+  ioc-insight:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env            # API keys (see .env.example) — never committed
+    volumes:
+      - ioc-data:/app/data           # persists cache + history DB
+      # - ./config.yaml:/app/config.yaml:ro   # optional: custom config
+    restart: unless-stopped
+
+volumes:
+  ioc-data:
