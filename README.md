@@ -41,13 +41,17 @@ export ABUSEIPDB_API_KEY=...   # free: abuseipdb.com
 export OTX_API_KEY=...         # free: otx.alienvault.com
 export HERMES_CUSTOM_API_VLEEE_NET_API_KEY=...   # AI provider key
 
-# 3. run
-iocinsight 8.8.8.8                  # one-shot lookup
-iocinsight hxxp://evil[.]com/login  # defanged input works
-iocinsight                          # interactive control panel (TUI)
-iocinsight --file iocs.txt          # bulk lookup
-uvicorn ioc_insight.api:app         # REST API on :8000
+# 3. run — pick your interface
+./iocinsight.py                           # interactive TUI control panel
+./iocinsight.py 8.8.8.8                   # one-shot CLI lookup
+cd web && npm install && npm run build    # build the web UI once
+uvicorn ioc_insight.api:app --port 8000   # web UI + API, single port
 ```
+
+**Web dashboard:** after `npm run build`, everything is served from
+`http://localhost:8000` — no separate frontend server needed. For phone
+access, expose it with a Cloudflare quick tunnel:
+`cloudflared tunnel --url http://localhost:8000`.
 
 WHOIS age works with **no API key at all** — you can try the tool immediately:
 

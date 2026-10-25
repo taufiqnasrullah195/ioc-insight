@@ -7,8 +7,11 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .ai.client import AIClient
@@ -16,6 +19,8 @@ from .config import load_config
 from .models import LookupResult
 from .normalizer import InvalidIOCError
 from .pipeline import Pipeline
+
+WEB_DIST = Path(__file__).resolve().parent.parent / "web" / "dist"
 
 
 class LookupRequest(BaseModel):
@@ -70,3 +75,16 @@ async def history_item(lookup_id: int):
     if result is None:
         raise HTTPException(404, f"lookup #{lookup_id} not found")
     return result
+
+
+# --- production: serve the built web UI from the same port (TRD P2.1d) ---
+if WEB_DIST.exists():
+    app.mount("/assets", StaticFiles(directory=WEB_DIST / "assets"), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa(full_path: str):
+        """SPA fallback — any non-API path serves index.html."""
+        candidate = WEB_DIST / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(WEB_DIST / "index.html")
