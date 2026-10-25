@@ -10,6 +10,11 @@ import time
 
 import httpx
 
+from .analyzers.abuse_ch import (
+    MalwareBazaarAnalyzer,
+    ThreatFoxAnalyzer,
+    URLhausAnalyzer,
+)
 from .analyzers.abuseipdb import AbuseIPDBAnalyzer
 from .analyzers.base import BaseAnalyzer
 from .analyzers.greynoise import GreyNoiseAnalyzer
@@ -35,6 +40,9 @@ ANALYZER_CLASSES: list[type[BaseAnalyzer]] = [
     WhoisAgeAnalyzer,
     UrlscanAnalyzer,
     GreyNoiseAnalyzer,
+    ThreatFoxAnalyzer,
+    URLhausAnalyzer,
+    MalwareBazaarAnalyzer,
 ]
 
 

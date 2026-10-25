@@ -18,6 +18,9 @@ DEFAULT_LIMITS_RPM: dict[str, int] = {
     "whois_age": 10,
     "urlscan": 30,
     "greynoise": 10,
+    "threatfox": 30,
+    "urlhaus": 30,
+    "malwarebazaar": 30,
 }
 
 

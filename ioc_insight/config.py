@@ -63,6 +63,10 @@ class AppConfig(BaseModel):
             "whois_age": ProviderConfig(),  # no key needed
             "urlscan": ProviderConfig(api_key="ENV:URLSCAN_API_KEY"),
             "greynoise": ProviderConfig(api_key="ENV:GREYNOISE_API_KEY"),
+            # abuse.ch — one free Auth-Key (auth.abuse.ch) covers all three
+            "threatfox": ProviderConfig(api_key="ENV:ABUSECH_AUTH_KEY"),
+            "urlhaus": ProviderConfig(api_key="ENV:ABUSECH_AUTH_KEY"),
+            "malwarebazaar": ProviderConfig(api_key="ENV:ABUSECH_AUTH_KEY"),
         }
     )
     ai: AIConfig = Field(default_factory=AIConfig)

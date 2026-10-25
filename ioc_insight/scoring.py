@@ -42,6 +42,13 @@ def score(results: list[AnalyzerResult]) -> int:
                 points -= 15
             elif "class:malicious" in r.tags:
                 points += 30
+        elif r.source == "threatfox":
+            # sightings in ThreatFox = known-bad IOC
+            points += 35 if r.malicious_votes >= 3 else 25 if r.malicious_votes >= 1 else 0
+        elif r.source == "urlhaus":
+            points += 35 if r.malicious_votes >= 5 else 25 if r.malicious_votes >= 1 else 0
+        elif r.source == "malwarebazaar":
+            points += 40 if r.malicious_votes >= 1 else 0  # in MB = known malware
     return min(100, max(0, points))
 
 

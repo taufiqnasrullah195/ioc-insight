@@ -14,6 +14,12 @@ function formatResult(r) {
     case "greynoise":
       return { main: r.tags.includes("class:malicious") ? "malicious" : r.tags.includes("known-benign-service") ? "benign" : "unknown",
                sub: r.tags.includes("internet-noise") ? "internet noise" : "GreyNoise class", danger: r.tags.includes("class:malicious") };
+    case "threatfox":
+      return { main: `${r.malicious_votes}`, sub: "ThreatFox sightings", danger: r.malicious_votes >= 1 };
+    case "urlhaus":
+      return { main: `${r.malicious_votes}`, sub: "malicious URLs on host", danger: r.malicious_votes >= 1 };
+    case "malwarebazaar":
+      return { main: r.malicious_votes >= 1 ? "known" : "clean", sub: "MalwareBazaar sample", danger: r.malicious_votes >= 1 };
     default:
       return { main: "ok", sub: "" };
   }
@@ -26,6 +32,9 @@ const NAMES = {
   whois_age: "WHOIS Age",
   urlscan: "urlscan.io",
   greynoise: "GreyNoise",
+  threatfox: "ThreatFox",
+  urlhaus: "URLhaus",
+  malwarebazaar: "MalwareBazaar",
 };
 
 export default function SourceCards({ results }) {
