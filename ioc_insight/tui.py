@@ -1,16 +1,14 @@
 """Interactive TUI control panel (textual). TRD §9 — mockup cli-interactive.png.
 
-Screens: main menu → quick lookup → result actions. Settings/history land in S9.
+Simple run: `iocinsight` (no args) → full menu. All menus functional:
+Quick Lookup, Bulk Lookup, History, Analyzer Status, Settings, Quit.
 """
 from __future__ import annotations
-
-import asyncio
 
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical
-from textual.widgets import Footer, Header, Input, Label, OptionList, Static
+from textual.widgets import Footer, Header, Input, OptionList, Static
 from textual.widgets.option_list import Option
 
 from .config import load_config
@@ -28,11 +26,27 @@ _BANNER = """\
 
 _MENU = [
     ("Quick Lookup — paste IOC, get verdict", "lookup"),
+    ("Bulk Lookup — file with one IOC per line", "bulk"),
     ("History — past lookups", "history"),
-    ("Analyzer Status — quotas & health (S10)", "status"),
-    ("Settings — language, AI model, cache (S10)", "settings"),
+    ("Analyzer Status — quotas & health", "status"),
+    ("Settings — language, cache", "settings"),
     ("Quit", "quit"),
 ]
+
+_SETTINGS_MENU = [
+    ("Language: {lang}  (toggle en → de → id)", "lang"),
+    ("Clear cache", "clear_cache"),
+    ("Back", "back"),
+]
+
+_ACTION_MENU = [
+    ("Copy ticket report", "copy"),
+    ("View raw JSON", "json"),
+    ("New lookup", "new"),
+    ("Main menu", "menu"),
+]
+
+_LANGS = ["en", "de", "id"]
 
 _VCOLOR = {Verdict.MALICIOUS: "red", Verdict.SUSPICIOUS: "yellow",
            Verdict.CLEAN: "green", Verdict.UNKNOWN: "white"}
@@ -56,14 +70,12 @@ class IOCInsightApp(App):
         self.pipeline: Pipeline | None = None
         self.last_result: LookupResult | None = None
 
+    # ---------- layout ----------
+
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         yield Static(_BANNER, id="banner")
-        yield Static(
-            f"v0.1 · SOC L1 IOC Triage · ai: {self.config.ai.model} · "
-            f"lang: {self.config.defaults.lang}",
-            id="status",
-        )
+        yield Static(self._status_line(), id="status")
         yield OptionList(*[Option(label, id=key) for label, key in _MENU], id="menu")
         yield Input(placeholder="IOC ❯ (hxxp://, [.] defanged OK)", id="ioc_input")
         yield Static("", id="verdict")
@@ -72,58 +84,62 @@ class IOCInsightApp(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        self.query_one("#ioc_input").display = False
-        self.query_one("#actions").display = False
-        self.query_one("#verdict").display = False
-        self.query_one("#report").display = False
+        for sel in ("#ioc_input", "#actions", "#verdict", "#report"):
+            self.query_one(sel).display = False
         self.query_one("#menu").focus()
 
+    def _status_line(self) -> str:
+        return (f"v0.1 · ai: {self.config.ai.model} · lang: {self.config.defaults.lang}"
+                f" · cache: on")
+
+    def _ensure_pipeline(self) -> Pipeline:
+        if self.pipeline is None:
+            self.pipeline = Pipeline(self.config)
+        return self.pipeline
+
+    def _hide_all(self) -> None:
+        for sel in ("#menu", "#ioc_input", "#verdict", "#report", "#actions"):
+            self.query_one(sel).display = False
+
+    def _show_menu(self) -> None:
+        self._hide_all()
+        menu = self.query_one("#menu")
+        menu.display = True
+        menu.focus()
+        self.query_one("#status").update(self._status_line())
+
+    def action_back(self) -> None:
+        self._show_menu()
+
+    # ---------- main menu ----------
+
     async def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        if event.option_list.id == "menu":
+        lid = event.option_list.id
+        if lid == "menu":
             await self._menu_select(event.option.id)
-        elif event.option_list.id == "actions":
+        elif lid == "actions":
             await self._action_select(event.option.id)
+        elif lid == "settings_menu":
+            await self._settings_select(event.option.id)
 
     async def _menu_select(self, key: str | None) -> None:
         if key == "quit":
             self.exit()
         elif key == "lookup":
-            self.query_one("#menu").display = False
+            self._hide_all()
             inp = self.query_one("#ioc_input")
             inp.display = True
             inp.focus()
+        elif key == "bulk":
+            self._run_bulk()
         elif key == "history":
             self._show_history()
-        else:
-            self.query_one("#status").update(
-                f"[{key}] arrives in S10 — pick Quick Lookup or History for now")
+        elif key == "status":
+            self._show_status()
+        elif key == "settings":
+            self._show_settings()
 
-    def _show_history(self) -> None:
-        if self.pipeline is None:
-            self.pipeline = Pipeline(self.config)
-        data = self.pipeline.history.list(limit=30)
-        report = self.query_one("#report")
-        report.display = True
-        if not data["items"]:
-            report.update("History is empty — run a lookup first.")
-        else:
-            lines = [f"History — {data['total']} lookups (newest first)", ""]
-            for it in data["items"]:
-                verdict = it["verdict"] or "—"
-                lines.append(
-                    f"  #{it['id']:<4} {it['ioc_value']:<32} "
-                    f"{it['risk_score']:>3}/100  {verdict:<10} {it['lang'] or '—'}"
-                )
-            report.update("\n".join(lines))
-        self.query_one("#status").update("esc to go back")
-        menu = self.query_one("#menu")
-        menu.display = False
-
-    def action_back(self) -> None:
-        self._show_menu()
-        self.query_one("#status").update(
-            f"v0.1 · SOC L1 IOC Triage · ai: {self.config.ai.model} · "
-            f"lang: {self.config.defaults.lang}")
+    # ---------- quick lookup ----------
 
     @on(Input.Submitted, "#ioc_input")
     def on_ioc_submitted(self, event: Input.Submitted) -> None:
@@ -136,10 +152,9 @@ class IOCInsightApp(App):
 
     @work(exclusive=True)
     async def _do_lookup(self, raw: str) -> None:
-        if self.pipeline is None:
-            self.pipeline = Pipeline(self.config)
+        pipe = self._ensure_pipeline()
         try:
-            result = await self.pipeline.lookup(raw)
+            result = await pipe.lookup(raw)
         except InvalidIOCError as e:
             self.query_one("#status").update(f"invalid IOC: {e}")
             self._show_menu()
@@ -148,11 +163,11 @@ class IOCInsightApp(App):
         self._render_result(result)
 
     def _render_result(self, r: LookupResult) -> None:
+        self._hide_all()
         ai = r.ai
         verdict = ai.verdict if ai else None
         vwidget = self.query_one("#verdict")
         vwidget.display = True
-        color = _VCOLOR.get(verdict, "white") if verdict else "white"
         text = (
             f"■ {verdict.value}  confidence {ai.confidence}%   score {r.risk_score}/100\n"
             f"Action: {ai.recommended_action.value}\n\n{ai.explanation}"
@@ -164,7 +179,7 @@ class IOCInsightApp(App):
 
         lines = []
         for res in r.analyzer_results:
-            if r and r.success and r.source == "whois_age":
+            if res.success and res.source == "whois_age":
                 lines.append(f"  {res.source:<11} age {res.malicious_votes}d")
             elif res.success:
                 lines.append(f"  {res.source:<11} votes={res.malicious_votes} "
@@ -177,18 +192,17 @@ class IOCInsightApp(App):
         actions = self.query_one("#actions")
         actions.display = True
         actions.clear_options()
-        actions.add_options([
-            Option("Copy ticket report", id="copy"),
-            Option("View raw JSON", id="json"),
-            Option("New lookup", id="new"),
-            Option("Main menu", id="menu"),
-        ])
+        actions.add_options([Option(label, id=key) for label, key in _ACTION_MENU])
         actions.focus()
         self.query_one("#status").update(f"done in {r.duration_ms}ms")
 
     async def _action_select(self, key: str | None) -> None:
         if key == "new":
-            self._reset_to_input()
+            self._hide_all()
+            inp = self.query_one("#ioc_input")
+            inp.value = ""
+            inp.display = True
+            inp.focus()
         elif key == "menu":
             self._show_menu()
         elif key == "copy" and self.last_result and self.last_result.ai:
@@ -199,20 +213,124 @@ class IOCInsightApp(App):
             self.query_one("#report").update(
                 self.last_result.model_dump_json(indent=2))
 
-    def _reset_to_input(self) -> None:
-        for sel in ("#verdict", "#report", "#actions"):
-            self.query_one(sel).display = False
-        inp = self.query_one("#ioc_input")
-        inp.value = ""
-        inp.display = True
-        inp.focus()
+    # ---------- bulk ----------
 
-    def _show_menu(self) -> None:
-        for sel in ("#verdict", "#report", "#actions", "#ioc_input"):
-            self.query_one(sel).display = False
-        menu = self.query_one("#menu")
-        menu.display = True
-        menu.focus()
+    @work(exclusive=True)
+    async def _run_bulk(self) -> None:
+        pipe = self._ensure_pipeline()
+        self.query_one("#status").update("⠿ bulk: reading iocs.txt…")
+        try:
+            with open("iocs.txt", encoding="utf-8") as f:
+                iocs = [ln.strip() for ln in f if ln.strip() and not ln.startswith("#")]
+        except OSError:
+            self.query_one("#status").update(
+                "bulk: create iocs.txt (one IOC per line) in the project dir first")
+            return
+        report = self.query_one("#report")
+        self._hide_all()
+        report.display = True
+        lines = [f"Bulk lookup — {len(iocs)} IOCs", ""]
+        for raw in iocs:
+            try:
+                r = await pipe.lookup(raw)
+                verdict = r.ai.verdict.value if r.ai else "—"
+                lines.append(f"  {r.ioc.value:<36} {r.risk_score:>3}/100  {verdict}")
+                report.update("\n".join(lines))
+            except InvalidIOCError:
+                lines.append(f"  {raw:<36}  — invalid, skipped")
+                report.update("\n".join(lines))
+        lines.append("")
+        lines.append("esc to go back")
+        report.update("\n".join(lines))
+        self.query_one("#status").update(f"bulk complete: {len(iocs)} processed")
+
+    # ---------- history ----------
+
+    def _show_history(self) -> None:
+        pipe = self._ensure_pipeline()
+        data = pipe.history.list(limit=30)
+        self._hide_all()
+        report = self.query_one("#report")
+        report.display = True
+        if not data["items"]:
+            report.update("History is empty — run a lookup first.\n\nesc to go back")
+        else:
+            lines = [f"History — {data['total']} lookups (newest first)", ""]
+            for it in data["items"]:
+                verdict = it["verdict"] or "—"
+                lines.append(
+                    f"  #{it['id']:<4} {it['ioc_value']:<32} "
+                    f"{it['risk_score']:>3}/100  {verdict:<10} {it['lang'] or '—'}"
+                )
+            lines += ["", "esc to go back"]
+            report.update("\n".join(lines))
+        self.query_one("#status").update("history")
+
+    # ---------- analyzer status ----------
+
+    def _show_status(self) -> None:
+        pipe = self._ensure_pipeline()
+        self._hide_all()
+        report = self.query_one("#report")
+        report.display = True
+        lines = ["Analyzer status", ""]
+        for a in pipe.analyzers:
+            ready = "● ready" if a.is_ready() else "○ not ready"
+            reason = ""
+            if not a.config.enabled:
+                reason = "(disabled in config)"
+            elif a.requires_key and not a.config.resolved_key():
+                reason = "(missing API key)"
+            types = ", ".join(sorted(a.supported_types))
+            lines.append(f"  {ready:<14} {a.name:<12} [{types}] {reason}")
+        lines += ["", f"AI: {self.config.ai.model} @ {self.config.ai.base_url}",
+                  "", "esc to go back"]
+        report.update("\n".join(lines))
+        self.query_one("#status").update("analyzer status")
+
+    # ---------- settings ----------
+
+    def _show_settings(self) -> None:
+        self._hide_all()
+        menu = self.query_one("#settings_menu") if self._has_settings() else None
+        actions = self.query_one("#actions")
+        actions.display = True
+        actions.clear_options()
+        actions.add_options([
+            Option(f"Language: {self.config.defaults.lang}  (toggle en → de → id)", id="lang"),
+            Option("Clear cache", id="clear_cache"),
+            Option("Back", id="back"),
+        ])
+        actions.focus()
+        self.query_one("#status").update("settings")
+
+    def _has_settings(self) -> bool:
+        return len(self.query("#settings_menu")) > 0
+
+    async def _settings_select(self, key: str | None) -> None:
+        await self._action_select(key)  # reuse; settings items share action ids
+
+    async def on_option_list_option_selected_settings(self, event) -> None:
+        pass  # handled in unified handler
+
+    @on(OptionList.OptionSelected, "#actions")
+    async def _actions_handler(self, event) -> None:
+        key = event.option.id
+        if key == "lang":
+            cur = self.config.defaults.lang
+            nxt = _LANGS[(_LANGS.index(cur) + 1) % len(_LANGS)]
+            self.config.defaults.lang = nxt
+            self.query_one("#status").update(f"language → {nxt} (this session)")
+            self._show_settings()
+        elif key == "clear_cache":
+            pipe = self._ensure_pipeline()
+            n = pipe.cache.clear()
+            self.query_one("#status").update(f"cache cleared — {n} entries removed")
+            self._show_settings()
+        elif key == "back":
+            self._show_menu()
+        else:
+            await self._action_select(key)
 
     async def on_unmount(self) -> None:
         if self.pipeline:
