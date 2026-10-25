@@ -89,8 +89,8 @@ class IOCInsightApp(App):
         self.query_one("#menu").focus()
 
     def _status_line(self) -> str:
-        return (f"v0.1 · ai: {self.config.ai.model} · lang: {self.config.defaults.lang}"
-                f" · cache: on")
+        return (f"v0.1 · built by TheWiseParadise · ai: {self.config.ai.model} · "
+                f"lang: {self.config.defaults.lang}")
 
     def _ensure_pipeline(self) -> Pipeline:
         if self.pipeline is None:

@@ -121,3 +121,9 @@ All secrets via environment variables — `config.yaml` references them as
 ## License
 
 MIT
+
+---
+
+**Built by TheWiseParadise** — AI-assisted SOC tooling for L1 analysts.
+Part of a cybersecurity portfolio: threat-intel aggregation, AI synthesis,
+and analyst-first UX in one tool.

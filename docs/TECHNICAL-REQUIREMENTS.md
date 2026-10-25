@@ -3,7 +3,7 @@
 **Project codename:** `ioc-insight`
 **Version:** 0.1 (Phase 1 planning)
 **Date:** 2026-10-24
-**Author:** LasVegasBaby + Hermes
+**Author:** TheWiseParadise + Hermes
 **Status:** DRAFT — awaiting approval before implementation
 
 ---
