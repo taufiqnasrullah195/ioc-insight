@@ -61,6 +61,8 @@ class AppConfig(BaseModel):
             "abuseipdb": ProviderConfig(api_key="ENV:ABUSEIPDB_API_KEY"),
             "otx": ProviderConfig(api_key="ENV:OTX_API_KEY"),
             "whois_age": ProviderConfig(),  # no key needed
+            "urlscan": ProviderConfig(api_key="ENV:URLSCAN_API_KEY"),
+            "greynoise": ProviderConfig(api_key="ENV:GREYNOISE_API_KEY"),
         }
     )
     ai: AIConfig = Field(default_factory=AIConfig)

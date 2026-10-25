@@ -12,7 +12,9 @@ import httpx
 
 from .analyzers.abuseipdb import AbuseIPDBAnalyzer
 from .analyzers.base import BaseAnalyzer
+from .analyzers.greynoise import GreyNoiseAnalyzer
 from .analyzers.otx import OTXAnalyzer
+from .analyzers.urlscan import UrlscanAnalyzer
 from .analyzers.virustotal import VirusTotalAnalyzer
 from .analyzers.whois_age import WhoisAgeAnalyzer
 from .ai.client import AIClient, AIUnavailableError
@@ -30,6 +32,8 @@ ANALYZER_CLASSES: list[type[BaseAnalyzer]] = [
     AbuseIPDBAnalyzer,
     OTXAnalyzer,
     WhoisAgeAnalyzer,
+    UrlscanAnalyzer,
+    GreyNoiseAnalyzer,
 ]
 
 

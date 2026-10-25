@@ -9,6 +9,11 @@ function formatResult(r) {
       return { main: `${r.malicious_votes}`, sub: "OTX pulses", danger: r.malicious_votes >= 5 };
     case "whois_age":
       return { main: `${r.malicious_votes}d`, sub: `domain age${r.tags.includes("newly-registered") ? " — newly registered!" : ""}`, danger: r.tags.includes("newly-registered") };
+    case "urlscan":
+      return { main: `${r.malicious_votes}/${r.total_engines}`, sub: "past scans malicious", danger: r.malicious_votes >= 1 };
+    case "greynoise":
+      return { main: r.tags.includes("class:malicious") ? "malicious" : r.tags.includes("known-benign-service") ? "benign" : "unknown",
+               sub: r.tags.includes("internet-noise") ? "internet noise" : "GreyNoise class", danger: r.tags.includes("class:malicious") };
     default:
       return { main: "ok", sub: "" };
   }
@@ -19,6 +24,8 @@ const NAMES = {
   abuseipdb: "AbuseIPDB",
   otx: "AlienVault OTX",
   whois_age: "WHOIS Age",
+  urlscan: "urlscan.io",
+  greynoise: "GreyNoise",
 };
 
 export default function SourceCards({ results }) {

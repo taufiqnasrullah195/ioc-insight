@@ -33,6 +33,15 @@ def score(results: list[AnalyzerResult]) -> int:
             age_days = r.malicious_votes  # field reuse, documented in whois_age.py
             if "no-creation-date" not in r.tags:
                 points += 20 if age_days < 30 else 10 if age_days < 180 else 0
+        elif r.source == "urlscan":
+            # any past scan flagged malicious is a strong signal
+            points += 30 if r.malicious_votes >= 1 else 0
+        elif r.source == "greynoise":
+            # RIOT (known benign) reduces score; malicious class raises it
+            if "known-benign-service" in r.tags:
+                points -= 15
+            elif "class:malicious" in r.tags:
+                points += 30
     return min(100, max(0, points))
 
 

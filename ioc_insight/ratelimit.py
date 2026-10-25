@@ -16,6 +16,8 @@ DEFAULT_LIMITS_RPM: dict[str, int] = {
     "abuseipdb": 15,
     "otx": 60,
     "whois_age": 10,
+    "urlscan": 30,
+    "greynoise": 10,
 }
 
 
