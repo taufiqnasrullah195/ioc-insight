@@ -77,9 +77,13 @@ def main(
     no_ai: bool = typer.Option(False, "--no-ai", help="Skip AI layer; heuristic score only."),
     no_cache: bool = typer.Option(False, "--no-cache", help="Bypass result cache."),
     copy: bool = typer.Option(False, "--copy", help="Copy ticket report to clipboard."),
+    ask: str = typer.Option(None, "--ask", "-a", help="Ask AI a question over lookup history."),
 ):
     if file:
         _bulk(file, lang, no_ai, no_cache, json_out)
+        return
+    if ask:
+        _run(_ask(ask, lang))
         return
     if ioc is None:
         from .tui import run_tui
@@ -120,6 +124,23 @@ def _bulk(path: str, lang, no_ai, no_cache, json_out):
         for r in results:
             verdict = r.ai.verdict.value if r.ai else "—"
             console.print(f"  {r.ioc.value:<40} {r.risk_score:>3}/100  {verdict}")
+
+
+async def _ask(question: str, lang: str | None) -> None:
+    """CLI --ask: query AI over lookup history."""
+    from .ai.client import AIClient
+    config = load_config()
+    pipe = Pipeline(config)
+    try:
+        items = pipe.history.list(limit=50)["items"]
+        console.print(f"[dim]asking over {len(items)} history items…[/]")
+        answer = await AIClient(config.ai).ask(question, items, lang or config.defaults.lang)
+        console.print(answer)
+    except Exception as e:
+        err_console.print(f"[red]AI unavailable:[/] {type(e).__name__}: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        await pipe.close()
 
 
 if __name__ == "__main__":

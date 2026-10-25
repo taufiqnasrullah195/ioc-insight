@@ -67,3 +67,29 @@ def user_prompt(ioc_value: str, ioc_type: str, risk_score: int,
     return "Analyze this IOC and respond with the required JSON:\n" + json.dumps(
         payload, ensure_ascii=False, default=str
     )
+
+
+def qa_system_prompt(lang: str) -> str:
+    lang_name = _LANG_NAMES.get(lang, "English")
+    return (
+        "You are a SOC L1 analyst assistant answering questions about past IOC "
+        "lookups stored in the tool's history. Answer ONLY from the provided "
+        "history data — if the answer is not there, say so. Be concise "
+        f"(2-5 sentences or a short list). Respond in {lang_name}."
+    )
+
+
+def qa_user_prompt(question: str, history_items: list[dict]) -> str:
+    rows = [
+        {
+            "id": it["id"], "ioc": it["ioc_value"], "type": it["ioc_type"],
+            "score": it["risk_score"], "verdict": it["verdict"],
+            "confidence": it["confidence"], "lang": it["lang"],
+        }
+        for it in history_items
+    ]
+    return (
+        f"History ({len(rows)} lookups, newest first):\n"
+        + json.dumps(rows, ensure_ascii=False)
+        + f"\n\nQuestion: {question}"
+    )

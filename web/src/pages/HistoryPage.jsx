@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchHistory, fetchHistoryItem } from "../api.js";
+import { askAI, fetchHistory, fetchHistoryItem } from "../api.js";
 import VerdictCard from "../components/VerdictCard.jsx";
 import SourceCards from "../components/SourceCards.jsx";
 import ReportPanel from "../components/ReportPanel.jsx";
@@ -16,6 +16,9 @@ export default function HistoryPage() {
   const [offset, setOffset] = useState(0);
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState(null);
+  const [asking, setAsking] = useState(false);
   const LIMIT = 20;
 
   async function load(off = offset) {
@@ -50,6 +53,32 @@ export default function HistoryPage() {
       </div>
 
       {error && <div className="text-red-300 text-sm">{error}</div>}
+
+      {/* Ask AI over history */}
+      <div className="bg-panel border border-border rounded-xl p-4">
+        <div className="flex gap-3">
+          <input
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={async (e) => {
+              if (e.key === "Enter" && question.trim()) {
+                setAsking(true); setAnswer(null);
+                try { setAnswer((await askAI(question)).answer); }
+                catch (err) { setAnswer(`AI unavailable: ${err.message}`); }
+                finally { setAsking(false); }
+              }
+            }}
+            placeholder="Ask AI about your lookup history… (Enter to ask)"
+            className="flex-1 bg-bg border border-border rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-accent"
+          />
+        </div>
+        {asking && <div className="text-xs text-slate-500 mt-2 animate-pulse">⠿ asking…</div>}
+        {answer && (
+          <div className="mt-3 text-sm text-slate-300 whitespace-pre-wrap border-t border-border pt-3">
+            {answer}
+          </div>
+        )}
+      </div>
 
       {data.items.length === 0 && !error && (
         <div className="text-center text-slate-600 py-16 text-sm">No lookups yet — run one from the Lookup page.</div>

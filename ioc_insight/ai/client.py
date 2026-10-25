@@ -30,6 +30,17 @@ class AIClient:
             timeout=config.timeout_seconds,
         )
 
+    async def ask(self, question: str, history_items: list[dict], lang: str = "en") -> str:
+        """Free-form Q&A over lookup history. Returns plain text in `lang`."""
+        from .prompts import qa_system_prompt, qa_user_prompt
+        messages = [
+            {"role": "system", "content": qa_system_prompt(lang)},
+            {"role": "user", "content": qa_user_prompt(question, history_items)},
+        ]
+        return await asyncio.wait_for(
+            self._complete(messages), timeout=self.config.timeout_seconds
+        )
+
     async def assess(
         self,
         ioc_value: str,

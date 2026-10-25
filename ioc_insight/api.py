@@ -77,6 +77,26 @@ async def history_item(lookup_id: int):
     return result
 
 
+class AskRequest(BaseModel):
+    question: str
+    lang: str | None = None
+    limit: int = 50
+
+
+@app.post("/api/v1/ask")
+async def ask(req: AskRequest):
+    """Free-form AI Q&A over lookup history."""
+    if not req.question.strip():
+        raise HTTPException(422, "question must not be empty")
+    lang = req.lang or app.state.config.defaults.lang
+    items = app.state.pipeline.history.list(limit=req.limit)["items"]
+    try:
+        answer = await AIClient(app.state.config.ai).ask(req.question, items, lang)
+    except Exception as e:
+        raise HTTPException(503, f"AI unavailable: {type(e).__name__}") from e
+    return {"answer": answer, "history_size": len(items), "lang": lang}
+
+
 # --- production: serve the built web UI from the same port (TRD P2.1d) ---
 if WEB_DIST.exists():
     app.mount("/assets", StaticFiles(directory=WEB_DIST / "assets"), name="assets")

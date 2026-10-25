@@ -28,6 +28,7 @@ _MENU = [
     ("Quick Lookup — paste IOC, get verdict", "lookup"),
     ("Bulk Lookup — file with one IOC per line", "bulk"),
     ("History — past lookups", "history"),
+    ("Ask AI — question over lookup history", "ask"),
     ("Analyzer Status — quotas & health", "status"),
     ("Settings — language, cache", "settings"),
     ("Quit", "quit"),
@@ -69,6 +70,7 @@ class IOCInsightApp(App):
         self.config = load_config()
         self.pipeline: Pipeline | None = None
         self.last_result: LookupResult | None = None
+        self.mode: str = "lookup"  # lookup | ask
 
     # ---------- layout ----------
 
@@ -126,14 +128,18 @@ class IOCInsightApp(App):
         if key == "quit":
             self.exit()
         elif key == "lookup":
+            self.mode = "lookup"
             self._hide_all()
             inp = self.query_one("#ioc_input")
+            inp.placeholder = "IOC ❯ (hxxp://, [.] defanged OK)"
             inp.display = True
             inp.focus()
         elif key == "bulk":
             self._run_bulk()
         elif key == "history":
             self._show_history()
+        elif key == "ask":
+            self._show_ask()
         elif key == "status":
             self._show_status()
         elif key == "settings":
@@ -147,8 +153,11 @@ class IOCInsightApp(App):
         if not raw:
             return
         event.input.display = False
-        self.query_one("#status").update(f"⠿ enriching… ({refang(raw)})")
-        self._do_lookup(raw)
+        if self.mode == "ask":
+            self._do_ask(raw)
+        else:
+            self.query_one("#status").update(f"⠿ enriching… ({refang(raw)})")
+            self._do_lookup(raw)
 
     @work(exclusive=True)
     async def _do_lookup(self, raw: str) -> None:
@@ -265,6 +274,34 @@ class IOCInsightApp(App):
             lines += ["", "esc to go back"]
             report.update("\n".join(lines))
         self.query_one("#status").update("history")
+
+    def _show_ask(self) -> None:
+        self.mode = "ask"
+        self._hide_all()
+        inp = self.query_one("#ioc_input")
+        inp.placeholder = "Ask AI about your lookup history…"
+        inp.value = ""
+        inp.display = True
+        inp.focus()
+        self.query_one("#status").update("ask mode — submit to query AI over history")
+
+    @work(exclusive=True)
+    async def _do_ask(self, question: str) -> None:
+        from .ai.client import AIClient
+        pipe = self._ensure_pipeline()
+        items = pipe.history.list(limit=50)["items"]
+        self.query_one("#status").update(f"⠿ asking AI over {len(items)} items…")
+        try:
+            answer = await AIClient(self.config.ai).ask(
+                question, items, self.config.defaults.lang)
+        except Exception as e:
+            self.query_one("#status").update(f"AI unavailable: {type(e).__name__}")
+            return
+        self._hide_all()
+        report = self.query_one("#report")
+        report.display = True
+        report.update(f"Q: {question}\n\n{answer}\n\nesc to go back")
+        self.query_one("#status").update("ask complete")
 
     # ---------- analyzer status ----------
 
