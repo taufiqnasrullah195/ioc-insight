@@ -18,13 +18,25 @@ Existing OSS tools (ioc-triage, ioc-threat-intel, ioc_checker) stop at
 - **Never blocked by AI** — if the AI provider is down, a deterministic heuristic
   verdict (0–100 risk score) is produced instead, clearly labeled
 
+## Screenshots
+
+![Web dashboard — lookup with AI verdict](mockups/web-production.png)
+
+![Interactive CLI control panel](mockups/cli-interactive.png)
+
+![History with detail drawer](mockups/web-history.png)
+
 ## Features
 
 - Auto-detect IOC type (IPv4, IPv6, domain, URL, MD5/SHA1/SHA256) — defanged input OK (`hxxp://`, `[.]`)
-- Parallel async enrichment: **VirusTotal v3, AbuseIPDB, AlienVault OTX, WHOIS domain age**
+- Parallel async enrichment: **VirusTotal v3, AbuseIPDB, AlienVault OTX, WHOIS domain age, urlscan.io, GreyNoise, ThreatFox, URLhaus, MalwareBazaar** (9 sources)
 - SQLite cache with per-type TTL (respects free-tier quotas) + per-provider rate limiting
 - Deterministic composite risk score 0–100 (documented rules, no AI dependency)
-- Three interfaces: **one-shot CLI**, **interactive TUI control panel** (textual), **REST API** (FastAPI)
+- **MITRE ATT&CK mapping** from analyzer tags (T1110, T1071, T1566, …)
+- **Telegram alerts** to your channel on MALICIOUS verdicts
+- **AI Q&A over lookup history** — ask "which IPs were malicious?" in plain language
+- **Bulk lookup** from CLI and web UI
+- Three interfaces: **one-shot CLI**, **interactive TUI control panel** (textual), **web dashboard** (React)
 - Every lookup persisted to a history DB, queryable via CLI, TUI, and API
 
 ## Quick start
