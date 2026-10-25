@@ -62,6 +62,7 @@ class LookupResult(BaseModel):
     ai: AIAssessment | None = None
     duration_ms: int = 0
     mitre: list[dict] = Field(default_factory=list)  # [{id, name, sources}]
+    rule_match: str | None = None  # name of the detection rule that fired, if any
 
 
 def score_band(score: int) -> Verdict:

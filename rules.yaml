@@ -1,0 +1,63 @@
+# Detection rules — edit these to match YOUR environment.
+# First matching rule wins. Docs: docs/P3.1-RULES.md
+
+- name: high-confidence-phishing-domain
+  description: Domain muda + sinyal jahat dari sumber lain
+  when: { ioc_type: domain }
+  conditions:
+    - field: whois_age.age_days
+      op: lt
+      value: 30
+    - any:
+        - { field: urlscan.malicious_votes, op: gte, value: 1 }
+        - { field: otx.malicious_votes, op: gte, value: 1 }
+  verdict: MALICIOUS
+  action: BLOCK
+  confidence: 90
+
+- name: tor-exit-node
+  description: IP adalah Tor exit relay — anonimitas, sering dipakai abuse
+  when: { ioc_type: ipv4 }
+  conditions:
+    - field: abuseipdb.tags
+      op: contains
+      value: tor-exit
+  verdict: SUSPICIOUS
+  action: MONITOR
+  confidence: 70
+
+- name: noisy-benign-service
+  description: GreyNoise RIOT — layanan besar yang dikenal (bukan ancaman)
+  when: { ioc_type: ipv4 }
+  conditions:
+    - field: greynoise.tags
+      op: contains
+      value: known-benign-service
+  verdict: CLEAN
+  action: LIKELY_FALSE_POSITIVE
+  confidence: 85
+
+- name: known-malware-hash
+  description: Hash ada di MalwareBazaar = sampel malware terkonfirmasi
+  when: { ioc_type: sha256 }
+  conditions:
+    - field: malwarebazaar.malicious_votes
+      op: gte
+      value: 1
+  verdict: MALICIOUS
+  action: BLOCK
+  confidence: 99
+
+- name: heavy-abuse-reports
+  description: AbuseIPDB confidence sangat tinggi dengan banyak laporan
+  when: { ioc_type: ipv4 }
+  conditions:
+    - field: abuseipdb.reputation_score
+      op: gte
+      value: 80
+    - field: abuseipdb.malicious_votes
+      op: gte
+      value: 20
+  verdict: MALICIOUS
+  action: BLOCK
+  confidence: 92

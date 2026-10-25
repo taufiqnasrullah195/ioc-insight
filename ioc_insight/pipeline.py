@@ -32,6 +32,7 @@ from .models import AnalyzerResult, LookupResult
 from .normalizer import normalize
 from .notify import TelegramNotifier
 from .ratelimit import RateLimiter
+from .rules import evaluate, load_rules
 from .scoring import score
 
 ANALYZER_CLASSES: list[type[BaseAnalyzer]] = [
@@ -83,6 +84,9 @@ class Pipeline:
             *(self._run_analyzer(a, ioc, use_cache) for a in self.analyzers)
         ))
         risk = score(results)
+        # detection rules first — analyst-authored decisions beat heuristics
+        self._rules = getattr(self, "_rules", None) or load_rules()
+        match = evaluate(ioc, results, self._rules)
         ai = None
         if use_ai:
             lang = lang or self.config.defaults.lang
@@ -95,6 +99,12 @@ class Pipeline:
             except Exception as e:  # belt and braces — AI must never block a lookup
                 ai = fallback_assessment(ioc.value, ioc.type, risk, results, lang,
                                          f"{type(e).__name__}: {e}")
+        # rule overrides verdict/action/confidence when it fires
+        if match and ai:
+            from .models import RecommendedAction
+            ai.verdict = match.verdict
+            ai.recommended_action = RecommendedAction(match.action)
+            ai.confidence = match.confidence
         duration_ms = int((time.monotonic() - start) * 1000)
         result = LookupResult(
             ioc=ioc,
@@ -103,6 +113,7 @@ class Pipeline:
             ai=ai,
             duration_ms=duration_ms,
             mitre=map_techniques(results),
+            rule_match=match.name if match else None,
         )
         self.history.save(result)
         await self._maybe_notify(result)
